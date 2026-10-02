@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx src/server.ts",
+    "mcp": "tsx src/mcp/server.ts",
     "typecheck": "tsc --noEmit",
     "verify:organization": "tsx src/tools/verify-organization.ts",
     "test": "vitest",

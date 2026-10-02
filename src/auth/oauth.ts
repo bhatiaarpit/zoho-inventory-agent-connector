@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import "dotenv/config";
+import { ZohoAuthenticationError } from "../zoho/errors.js";
 
 function requiredEnv(name: string): string {
   const value = process.env[name];
@@ -58,17 +59,7 @@ export interface ZohoTokenResponse {
   expires_in: number;
 }
 
-export async function exchangeCodeForTokens(
-  code: string,
-): Promise<ZohoTokenResponse> {
-  const params = new URLSearchParams({
-    code,
-    client_id: clientId,
-    client_secret: clientSecret,
-    redirect_uri: redirectUri,
-    grant_type: "authorization_code",
-  });
-
+async function tokenRequest(params: URLSearchParams): Promise<ZohoTokenResponse> {
   const response = await fetch(
     `${accountsBaseUrl.replace(/\/+$/, "")}/oauth/v2/token`,
     {
@@ -80,16 +71,29 @@ export async function exchangeCodeForTokens(
     },
   );
 
-  const body: unknown = await response.json();
+  let body: unknown;
+
+  try {
+    body = await response.json();
+  } catch (error) {
+    throw new ZohoAuthenticationError(
+      "Zoho returned a malformed OAuth response.",
+      response.status,
+      undefined,
+      { cause: error },
+    );
+  }
 
   if (!response.ok) {
-    const description =
+    const errorCode =
       typeof body === "object" && body !== null &&
-      "error_description" in body && typeof body.error_description === "string"
-        ? body.error_description
-        : "unknown error";
-    throw new Error(
-      `Zoho token exchange failed (HTTP ${response.status}): ${description}`,
+      "error" in body && typeof body.error === "string"
+        ? body.error
+        : undefined;
+    throw new ZohoAuthenticationError(
+      "Zoho token request failed.",
+      response.status,
+      errorCode,
     );
   }
 
@@ -101,7 +105,10 @@ export async function exchangeCodeForTokens(
     !("expires_in" in body) ||
     typeof body.expires_in !== "number"
   ) {
-    throw new Error("Zoho returned an invalid token response");
+    throw new ZohoAuthenticationError(
+      "Zoho returned an invalid token response.",
+      response.status,
+    );
   }
 
   return {
@@ -113,3 +120,30 @@ export async function exchangeCodeForTokens(
     expires_in: body.expires_in,
   };
 }
+
+  export async function exchangeCodeForTokens(
+    code: string,
+  ): Promise<ZohoTokenResponse> {
+    const params = new URLSearchParams({
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: redirectUri,
+      grant_type: "authorization_code",
+    });
+
+    return tokenRequest(params);
+  }
+
+  export async function refreshAccessToken(
+    refreshToken: string,
+  ): Promise<ZohoTokenResponse> {
+    const params = new URLSearchParams({
+      refresh_token: refreshToken,
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: "refresh_token",
+    });
+
+    return tokenRequest(params);
+  }
