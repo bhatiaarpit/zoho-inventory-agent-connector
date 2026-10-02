@@ -13,6 +13,10 @@ A read-only MCP connector that enables an AI agent to securely access inventory,
 - Zod-validated tool inputs and structured outputs.
 - Automated tests for authentication, errors, pagination, and MCP handlers.
 
+## Demo Video
+
+[![Watch the Zoho Inventory Agent Connector demo](https://img.youtube.com/vi/ZlH5K3ivp4Y/hqdefault.jpg)](https://youtu.be/ZlH5K3ivp4Y)
+
 ## Architecture
 
 The MCP stdio server calls resource-specific wrappers, which use the shared Zoho client for organization-scoped HTTP requests and token refresh. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the component and security overview.
