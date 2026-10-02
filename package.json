@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx src/server.ts",
     "typecheck": "tsc --noEmit",
+    "verify:organization": "tsx src/tools/verify-organization.ts",
     "test": "vitest",
     "test:watch": "vitest --watch"
   },
