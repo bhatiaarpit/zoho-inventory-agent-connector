@@ -4,6 +4,8 @@
 
 Zoho Inventory Agent Connector is a read-only MCP server that exposes merchant inventory, sales orders, and contacts to an AI agent. An Express application handles the local OAuth callback and an MCP stdio process serves the tools.
 
+![Zoho Inventory Agent Connector architecture overview](assets/architecture.png)
+
 ## Request Flow
 
 ```text
